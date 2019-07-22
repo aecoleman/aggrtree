@@ -18,7 +18,8 @@ Aggr_Attrs <- function(tree, attrs = NULL, aggFun = sum) {
   purrr::walk(
     attrs,
     ~ tree$Do(
-        .Aggr_Attr(.x),
+        .Aggr_Attr(attr   = .x,
+                   aggFun = aggFun),
         traversal = 'post-order')
   )
 
