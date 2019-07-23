@@ -2,14 +2,22 @@
 % Please edit documentation in R/DataFrame_Functions.R
 \name{tree_to_df}
 \alias{tree_to_df}
-\title{To Data.Frame All}
+\title{Tree to Data.Frame}
 \usage{
-tree_to_df(tree, attrs = NULL, minimal = TRUE)
+tree_to_df(node, ..., attrs = NULL, attributes_only = TRUE)
 }
 \arguments{
-\item{tree}{data.tree}
+\item{node}{a data.tree Node object}
 
-\item{attrs}{character, optional}
+\item{attrs}{character, optional. Attributes to be included in the output.
+If not provided, will default to include all attributes present in the data.tree.}
+
+\item{attributes_only}{logical, optional. If \code{TRUE}, the default, only
+attribute columns and pathString are returned in the data.frame. If
+\code{FALSE} columns added by the function \code{ToDataFrameTree} are also
+returned. These include \code{name}, \code{levelName}, and \code{level},
+which can be useful to have if you intend to rank nodes by level based on
+some attribute (or function of attributes).}
 }
 \value{
 data.frame

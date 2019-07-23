@@ -1,4 +1,4 @@
 library(testthat)
-library(msraggr)
+library(aggrtree)
 
-test_check("msraggr")
+test_check('aggrtree')

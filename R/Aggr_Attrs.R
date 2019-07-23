@@ -1,6 +1,6 @@
 #' Aggregate Attributes
 #'
-#' @param tree data.tree
+#' @param node data.tree Node object
 #' @param attrs character, optional. Vector of attributes to aggregate. Default
 #' is all attributes.
 #' @param aggFun function, optional. The function to be used to aggregate each
@@ -9,21 +9,25 @@
 #' @return data.tree
 #' @export
 #'
-Aggr_Attrs <- function(tree, attrs = NULL, aggFun = sum) {
+#' @importFrom purrr walk
+#'
+Aggr_Attrs <- function(node, attrs = NULL, aggFun = sum) {
+
+  stopifnot(is.Node(node))
 
   if (is.null(attrs)) {
-    attrs <- tree$fieldsAll
+    attrs <- node$fieldsAll
   }
 
   purrr::walk(
     attrs,
-    ~ tree$Do(
+    ~ node$Do(
         .Aggr_Attr(attr   = .x,
                    aggFun = aggFun),
         traversal = 'post-order')
   )
 
-  return(tree)
+  return(node)
 
 }
 
@@ -35,12 +39,13 @@ Aggr_Attrs <- function(tree, attrs = NULL, aggFun = sum) {
 #'
 #' @return function
 #'
+#' @importFrom data.tree Aggregate
 #'
 .Aggr_Attr <- function(attr, aggFun = sum) {
 
   function(x) {
     x[[attr]] <-
-      Aggregate(node      = x,
+      data.tree::Aggregate(node      = x,
                 attribute = attr,
                 aggFun    = aggFun)
   }

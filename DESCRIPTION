@@ -1,12 +1,12 @@
-Package: msraggr
+Package: aggrtree
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Title: Aggregate Tree
+Version: 0.0.0.9000
+Author: Andrew Coleman
+Maintainer: Andrew Coleman <yourself@somewhere.net>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
@@ -15,4 +15,4 @@ Imports:
     data.tree,
     magrittr
 Suggests: 
-    testthat
+    testthat (>= 2.1.0)

@@ -96,6 +96,8 @@ df_in$attr_B[sample.int(n = nrow(df_in), size = 3L)] <- NA_real_
 df_in$attr_C[sample.int(n = nrow(df_in), size = 3L)] <- NA_real_
 df_in$attr_D[sample.int(n = nrow(df_in), size = 3L)] <- NA_real_
 
+tree <- df_in %>% data.tree::as.Node()
+
 df_out_0 <-
   df_in %>%
   data.tree::as.Node() %>%

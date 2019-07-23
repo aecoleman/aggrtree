@@ -4,10 +4,10 @@
 \alias{Aggr_Attrs}
 \title{Aggregate Attributes}
 \usage{
-Aggr_Attrs(tree, attrs = NULL, aggFun = sum)
+Aggr_Attrs(node, attrs = NULL, aggFun = sum)
 }
 \arguments{
-\item{tree}{data.tree}
+\item{node}{data.tree Node object}
 
 \item{attrs}{character, optional. Vector of attributes to aggregate. Default
 is all attributes.}
