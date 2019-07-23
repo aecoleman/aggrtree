@@ -12,6 +12,9 @@
 \item{aggFun}{function, the function to be used for aggregation. Function
 should take a numeric vector as its only argument and return a numeric singleton}
 }
+\value{
+function
+}
 \description{
 Aggregate Attribute
 }
