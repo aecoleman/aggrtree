@@ -2,7 +2,6 @@
 
 export("%>%")
 export(Aggr_Attrs)
-export(Aggr_Scaled)
 export(Print_Tree)
 export(pivot_tree_df)
 export(tree_to_df)
