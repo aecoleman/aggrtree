@@ -1,16 +1,16 @@
-#' Make Isolate Trees
+
+#' Isolate and Aggregate
 #'
 #' This function is used to make a list of trees, one for each unique value in
 #' the isolate column in the data.frame \code{df}
 #'
-#' @param df data.frame
-#' @param isolate symbol, a column in \code{df} which will be isolated
-#' @param over symbol, a column in \code{df} which will be aggregated over
+#' @inheritParams Make_Isolate_Tree
+#' @inheritParams Aggr_Attrs
 #'
-#' @return list of data.trees
+#' @return data.frame
 #' @export
 #'
-Make_Isolate_Trees <- function(df, isolate, over) {
+Isolate_Aggr <- function(df, isolate, over, attrs = NULL, aggFun = sum) {
 
   # TODO: Make it possible to isolate an arbitrary number of columns.
   # EnQuose arguments
@@ -24,12 +24,42 @@ Make_Isolate_Trees <- function(df, isolate, over) {
       unique()
 
   isolate_paths %>%
-    purrr::map(
-      ~ Make_Isolate_Tree(
+    purrr::map_dfr(
+      ~ .Isolate_Aggr(
           df = df,
           isolate_path = .x,
           isolate = !!isolate,
-          over    = !!over))
+          over    = !!over,
+          attrs   = attrs,
+          aggFun  = aggFun))
+
+}
+
+#' Isolate and Aggregate (Helper)
+#'
+#' @inheritParams Make_Isolate_Tree
+#' @inheritParams Aggr_Attrs
+#'
+#' @return data.frame
+#' @export
+#'
+.Isolate_Aggr <- function(df, isolate_path, isolate, over, attrs = NULL, aggFun = sum) {
+
+  isolate <- rlang::enquo(isolate)
+  over <- rlang::enquo(over)
+
+  Make_Isolate_Tree(
+    df = df,
+    isolate_path = isolate_path,
+    isolate = !!isolate,
+    over    = !!over) %>%
+  Aggr_Attrs(
+    attrs  = attrs,
+    aggFun = aggFun) %>%
+  Make_Aggd_Df(
+    isolate_path = isolate_path,
+    isolate      = !!isolate,
+    over         = !!over)
 
 }
 
@@ -109,5 +139,7 @@ Make_Aggd_Df <- function(aggd_tree, isolate_path, over, isolate) {
     dplyr::rename(
       !!over := pathString) %>%
     dplyr::mutate(
-      !!isolate := isolate_path)
+      !!isolate := isolate_path) %>%
+    dplyr::select(!!isolate, !!over, dplyr::everything())
+
 }

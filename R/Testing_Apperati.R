@@ -6,8 +6,8 @@
 #'
 .Make_Test_DF <- function() {
 
-  isolate_vars <- .Make_Arbitrary_Hierarchy(max_depth = 3L, child_opts = 0L:3L)
-  over_vars <- .Make_Arbitrary_Hierarchy(max_depth = 2L, child_opts = 0L:3L)
+  isolate_vars <- .Make_Arbitrary_Hierarchy(max_level = 3L, child_opts = 0L:3L)
+  over_vars <- .Make_Arbitrary_Hierarchy(max_level = 2L, child_opts = 0L:3L)
 
   df <- expand.grid(
     isolate_var = isolate_vars,
@@ -29,18 +29,25 @@
 #'  Function to create an arbitrary hierarchy, primarily for the purposes of
 #'  creating data for tests.
 #'
-#' @param max_depth integer, the depth at which to stop. Note that the root is
-#' @param depth integer, optional, the current depth. This is primarily intended
+#' @param max_level integer, the level at which to stop. Note that the root is level 0.
+#' @param iter_level integer, optional, the level of the parents whose
+#' children are being generated on this iteration. This is primarily intended
 #' to be used internally, as this function uses recursion to generate the nodes.
 #' @param num_children_range integer vector, the min and max of this vector is
 #' used to determine the possible numbers of children that each parent can have.
 #' Integers within this range will be sampled in order to generate the children.
 #' @param child_opts integer vector of any length, optional. If supplied,
 #' this supercedes \code{num_children_range}, and is used to generate children.
-#' @param parent_paths character, optional, the paths of the parents. Primarily
-#' used internally.
-#' @param name_mode character, can be any of 'ALTERNATE', 'alternate', 'LETTERS', 'letters', or 'numerals'. Both varieties of Alternate will result in names that alternate between using letters and using numerals, where ALTERNATE uses capitals and alternate uses lower case.
-#' @param force_full_tree logical, should the tree be forced to be full (all leaf nodes at the maximum depth)?
+#' Note: this means that child_opts = c(1,2,2) will generate parents with 2
+#' children twice as often as child_opts = c(1,2).
+#' @param parent_paths character, optional, the path(s) of the parents.
+#' Primarily used internally.
+#' @param name_mode character, can be any of 'ALTERNATE', 'alternate',
+#' 'LETTERS', 'letters', or 'numerals'. Both varieties of Alternate will result
+#' in names that alternate between using letters and using numerals, where
+#' ALTERNATE uses capitals and alternate uses lower case.
+#' @param force_full_tree logical, should the tree be forced to be full (all
+#' leaf nodes at the maximum level)?
 #'
 #' @return character, pathStrings for use in a data.tree structure
 #' @export
@@ -48,32 +55,34 @@
 #' @examples
 #'
 #' # Make a full binary tree
-#' .Make_Arbitrary_Hierarchy(depth = 3L, child_opts = 2L, parent_paths = '0', name_mode = 'ALTERNATE', force_full_tree = TRUE)
+#' .Make_Arbitrary_Hierarchy(max_level = 3L, child_opts = 2L, parent_paths = '0', name_mode = 'ALTERNATE', force_full_tree = TRUE)
 #'
-.Make_Arbitrary_Hierarchy <- function(max_depth = 1L, depth = NULL, num_children_range = c(min = 1L, max = 5L), child_opts = NULL, parent_paths = NULL, name_mode = c('ALTERNATE', 'alternate', 'LETTERS', 'letters', 'numerals'), force_full_tree = TRUE) {
+.Make_Arbitrary_Hierarchy <- function(max_level = 1L, iter_level = NULL, num_children_range = c(min = 1L, max = 5L), child_opts = NULL, parent_paths = NULL, name_mode = c('ALTERNATE', 'alternate', 'LETTERS', 'letters', 'numerals'), force_full_tree = TRUE) {
 
   name_mode <- name_mode[1]
 
-  if (is.null(depth)) {
-    depth <- 1L
+  # iter_level is the
+  if (is.null(iter_level)) {
+    iter_level <- 0L
   }
 
   # If depth is 1, make the root name. For LETTERS the default root is 'O', and
   # for letters it is 'o'. In all other cases, the default root is '0'.
-  if (depth == 1L && is.null(parent_paths)) {
+  if (iter_level == 0L && is.null(parent_paths)) {
     parent_paths <-
       switch(name_mode,
              LETTERS = 'O',
              letters = 'o',
              '0')
-  } else if (depth == 1L && length(parent_paths) > 1L) {
+  } else if (iter_level == 0L && length(parent_paths) > 1L) {
+    warning('Multiple parent_paths passed to root level. Using first parent_path only.')
     parent_paths <- parent_paths[1]
   }
 
   # Check the depth of each parent. If a parent isn't at depth - 1L, then that
   # parent's lineage must have ended, and we should avoid giving it children
   # during this and future iterations.
-  parent_depth <- stringr::str_count(parent_paths, '/')
+  parent_levels <- stringr::str_count(parent_paths, '/')
 
   stopifnot(is.logical(force_full_tree))
 
@@ -84,8 +93,13 @@
     # Determine, the possible options for number of children
     child_opts <-
       as.integer(
-        seq(from = max(force_full_tree, min(num_children_range)),
+        seq(from = max(0L, min(num_children_range)),
             to = max(num_children_range), by = 1L))
+  }
+
+  if (force_full_tree == TRUE) {
+    child_opts <- child_opts[child_opts >= 1L]
+    if (length(child_opts) == 0L) child_opts <- 1L
   }
 
   if (length(child_opts) > 1L) {
@@ -100,9 +114,9 @@
 
   # If we haven't reached max depth yet, but all parents are to have no
   # children, select one parent whose lineage is not ended to have one child.
-  if (depth < max_depth && all(num_children) == 0L) {
+  if (iter_level < max_level && all(num_children) == 0L) {
 
-    surviving_lineages <- which(parent_depth == depth - 1L)
+    surviving_lineages <- which(parent_levels == iter_level)
 
     if (length(surviving_lineages) == 1L) {
       num_children[surviving_lineages] <- 1L
@@ -120,14 +134,16 @@
       name_mode) %>%
     unlist()
 
-  if (depth < max_depth) {
+  nxt_iter_level <- iter_level + 1L
+
+  if (nxt_iter_level < max_level) {
     # Recurse until max depth is reached.
     # We only supply child_opts, because we will have already found it.
     pathString <-
       .Make_Arbitrary_Hierarchy(
         parent_paths    = pathString,
-        max_depth       = max_depth,
-        depth           = depth + 1L,
+        max_level       = max_level,
+        iter_level      = nxt_iter_level,
         child_opts      = child_opts,
         force_full_tree = force_full_tree,
         name_mode       = name_mode)
@@ -149,7 +165,7 @@
   parent_name <- stringr::str_extract(parent_path, '[^/]+$')
 
   # First, if the name_mode is ALTERNATE or alternate, determine what mode
-  # should be used at this depth.
+  # should be used at this level.
   name_mode <-
     switch(name_mode,
            ALTERNATE = {ifelse(stringr::str_detect(parent_name, '[0-9]$'), 'LETTERS', 'numerals')},

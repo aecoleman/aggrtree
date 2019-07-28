@@ -5,7 +5,7 @@ library(magrittr)
 # set.seed(2)
 
 isolate_vars <- c('0/A', '0/B', '0/C')
-over_vars <- c('0/x/xa', '0/x/xb', '0/x/xa', '0/y/ya', '0/y/yb', '0/z')
+over_vars <- c('0/x/xa', '0/x/xb', '0/y/ya', '0/y/yb', '0/z')
 
 df <- expand.grid(
   isolate_var = isolate_vars,
@@ -102,13 +102,19 @@ test_that("Make_Isolate_Tree works with more than one argument in '...'", {
       !!!measures))
 })
 
+test_that('Isolate_Aggr works as expected', {
+  expect_equal(
+    df %>%
+      dplyr::group_by(isolate_var) %>%
+      dplyr::summarize_at(
+        dplyr::vars(dplyr::matches('^measure_[0-9]+$')), sum) %>%
+      dplyr::mutate(over_var = '0'),
 
-dtrees <-
-isolate_vars %>%
-  purrr::map(
-    ~ Make_Isolate_Tree(
-        df = df,
-        isolate_path = .x,
+    df %>%
+      dplyr::select(-measure_D) %>%
+      Isolate_Aggr(
         isolate = isolate_var,
-        over = over_var))
-
+        over    = over_var,
+        aggFun  = sum) %>%
+      dplyr::filter(over_var == '0'))
+})

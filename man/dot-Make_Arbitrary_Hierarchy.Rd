@@ -4,15 +4,16 @@
 \alias{.Make_Arbitrary_Hierarchy}
 \title{Make Arbitrary Hierarchy}
 \usage{
-.Make_Arbitrary_Hierarchy(max_depth = 1L, depth = NULL,
+.Make_Arbitrary_Hierarchy(max_level = 1L, iter_level = NULL,
   num_children_range = c(min = 1L, max = 5L), child_opts = NULL,
   parent_paths = NULL, name_mode = c("ALTERNATE", "alternate",
   "LETTERS", "letters", "numerals"), force_full_tree = TRUE)
 }
 \arguments{
-\item{max_depth}{integer, the depth at which to stop. Note that the root is}
+\item{max_level}{integer, the level at which to stop. Note that the root is level 0.}
 
-\item{depth}{integer, optional, the current depth. This is primarily intended
+\item{iter_level}{integer, optional, the level of the parents whose
+children are being generated on this iteration. This is primarily intended
 to be used internally, as this function uses recursion to generate the nodes.}
 
 \item{num_children_range}{integer vector, the min and max of this vector is
@@ -20,14 +21,20 @@ used to determine the possible numbers of children that each parent can have.
 Integers within this range will be sampled in order to generate the children.}
 
 \item{child_opts}{integer vector of any length, optional. If supplied,
-this supercedes \code{num_children_range}, and is used to generate children.}
+this supercedes \code{num_children_range}, and is used to generate children.
+Note: this means that child_opts = c(1,2,2) will generate parents with 2
+children twice as often as child_opts = c(1,2).}
 
-\item{parent_paths}{character, optional, the paths of the parents. Primarily
-used internally.}
+\item{parent_paths}{character, optional, the path(s) of the parents.
+Primarily used internally.}
 
-\item{name_mode}{character, can be any of 'ALTERNATE', 'alternate', 'LETTERS', 'letters', or 'numerals'. Both varieties of Alternate will result in names that alternate between using letters and using numerals, where ALTERNATE uses capitals and alternate uses lower case.}
+\item{name_mode}{character, can be any of 'ALTERNATE', 'alternate',
+'LETTERS', 'letters', or 'numerals'. Both varieties of Alternate will result
+in names that alternate between using letters and using numerals, where
+ALTERNATE uses capitals and alternate uses lower case.}
 
-\item{force_full_tree}{logical, should the tree be forced to be full (all leaf nodes at the maximum depth)?}
+\item{force_full_tree}{logical, should the tree be forced to be full (all
+leaf nodes at the maximum level)?}
 }
 \value{
 character, pathStrings for use in a data.tree structure
@@ -39,6 +46,6 @@ creating data for tests.
 \examples{
 
 # Make a full binary tree
-.Make_Arbitrary_Hierarchy(depth = 3L, child_opts = 2L, parent_paths = '0', name_mode = 'ALTERNATE', force_full_tree = TRUE)
+.Make_Arbitrary_Hierarchy(max_level = 3L, child_opts = 2L, parent_paths = '0', name_mode = 'ALTERNATE', force_full_tree = TRUE)
 
 }
